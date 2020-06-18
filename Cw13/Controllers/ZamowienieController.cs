@@ -85,18 +85,17 @@ namespace Cw13.Controllers
         public IActionResult NoweZamowienie(int id,ZamowienieDTO noweZamowienieDTO)
         {
 
-            List<Zamowienia_WyrobCukierniczy> zamowienia_WyrobCukiernicze = new List<Zamowienia_WyrobCukierniczy>();
-            List<WyrobCukierniczy> wyrobyWZamowieniu = new List<WyrobCukierniczy>();
-            
-            int newOrderId;
-            
-            Zamowienie ostatnie = cukierniaContext.Zamowienia.OrderByDescending(z => z.IdZamowienie).FirstOrDefault();
-            if (ostatnie == null)
-                newOrderId = 1;
-            else
-            newOrderId=ostatnie.IdZamowienie+1;
-            
-            
+            Zamowienie noweZamowienie = new Zamowienie();
+            List<Zamowienia_WyrobCukierniczy> zamowienia_WyrobyCukiernicze = new List<Zamowienia_WyrobCukierniczy>();
+
+            Klient klient = cukierniaContext.Klienci.Find(id);
+            if (klient == null)
+                return NotFound("Nie znaleziono klienta o id: " + id);
+
+            Pracownik pracownik = cukierniaContext.Pracownicy.Find(1);
+            if (pracownik == null)
+                return NotFound("Nie znaleziono pracwnika o id: " + 1);
+
 
 
             foreach (WyrobDTO wyrobDTO in noweZamowienieDTO.wyroby)
@@ -107,37 +106,23 @@ namespace Cw13.Controllers
                 {
                     return NotFound("Nie ma takiego wyrobu: "+wyrobDTO.wyrob);
                 }
-                wyrobyWZamowieniu.Add(wyrobCukierniczy);
                 Zamowienia_WyrobCukierniczy zamowienia_WyrobCukierniczy = new Zamowienia_WyrobCukierniczy();
-                zamowienia_WyrobCukierniczy.IdWyrobuCukierniczego = wyrobCukierniczy.IdWyrobuCukierniczego;
-                zamowienia_WyrobCukierniczy.IdZamowienia = newOrderId;
+                zamowienia_WyrobCukierniczy.wyrobCukierniczy = wyrobCukierniczy;
+                zamowienia_WyrobCukierniczy.zamowienie = noweZamowienie;
                 zamowienia_WyrobCukierniczy.Ilosc = Int32.Parse(wyrobDTO.ilosc);
                 zamowienia_WyrobCukierniczy.Uwagi = wyrobDTO.uwagi;
-                zamowienia_WyrobCukiernicze.Add(zamowienia_WyrobCukierniczy);
+                zamowienia_WyrobyCukiernicze.Add(zamowienia_WyrobCukierniczy);
             }
 
 
-            Klient klient = cukierniaContext.Klienci.Find(id);
-            if (klient == null)
-                return NotFound("Nie znaleziono klienta o id: "+id);
-
-            Pracownik pracownik = cukierniaContext.Pracownicy.Find(1);
-            if (pracownik == null)
-                return NotFound("Nie znaleziono pracwnika o id: " + 1);
-
-
-            Zamowienie noweZamowienie = new Zamowienie();
             noweZamowienie.DataPrzyjecia=DateTime.Parse(noweZamowienieDTO.dataPrzyjecia);
             noweZamowienie.Uwagi = noweZamowienieDTO.uwagi;
             noweZamowienie.klient = klient;
             noweZamowienie.pracownik = pracownik;
-            noweZamowienie.zamowienia_WyrobCukiernicze = zamowienia_WyrobCukiernicze;
+            noweZamowienie.zamowienia_WyrobCukiernicze = zamowienia_WyrobyCukiernicze;
 
             cukierniaContext.Add(noweZamowienie);
-            cukierniaContext.SaveChanges();
-
-
-            
+            cukierniaContext.SaveChanges(); 
 
             return Ok("Stworzono nowe zamowienie");
         }
